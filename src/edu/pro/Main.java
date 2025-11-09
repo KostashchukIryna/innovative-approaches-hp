@@ -3,65 +3,45 @@ package edu.pro;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;;
 
 public class Main {
-
-    public static String cleanText(String url) throws IOException {
-        String content = new String(Files.readAllBytes(Paths.get(url)));
-        content = content.replaceAll("[^A-Za-z ]"," ").toLowerCase(Locale.ROOT);
-        return content;
-    }
 
     public static void main(String[] args) throws IOException {
 
         LocalDateTime start = LocalDateTime.now();
-       // Path path = Paths.get()
+
         String content = new String(Files.readAllBytes(Paths.get("src/edu/pro/txt/harry.txt")));
 
-        content = content.replaceAll("[^A-Za-z ]"," ").toLowerCase(Locale.ROOT);
+        content = content
+            .replaceAll("[^A-Za-z ]", " ")
+            .toLowerCase(Locale.ROOT);
 
-        String[] words = content.split(" +"); // 400 000
+        List<String> words = Arrays.asList(content.split(" +")).stream()
+            .filter(word -> !word.isEmpty())
+            .collect(Collectors.toList());
 
-        Arrays.sort(words);
+        Map<String, Long> wordCounts = words.stream()
+            .collect(Collectors.groupingBy(
+                word -> word,
+                Collectors.counting()
+            ));
 
-        String distinctString = " ";
+        System.out.println("--- Top 30 Most Frequent Words ---");
+        wordCounts.entrySet().stream()
+            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+            .limit(30)
+            .forEach(entry ->
+                System.out.printf("%-15s %d%n", entry.getKey(), entry.getValue())
+            );
 
-        for (int i = 0; i < words.length ; i++) {
-            if (!distinctString.contains(words[i])){
-                distinctString+= words[i] + " ";
-            }
-        }
-
-        String[] distincts = distinctString.split(" ");
-        int[] freq = new int[distincts.length];
-
-        for (int i = 0; i < distincts.length ; i++) {
-            int count = 0;
-            for (int j = 0; j < words.length ; j++) {
-                if (distincts[i].equals(words[j])) {
-                    count++;
-                }
-            }
-            freq[i] = count;
-        }
-
-        for (int i = 0; i < distincts.length ; i++) { // 5 000
-            distincts[i] += " " + freq[i];
-        }
-
-        Arrays.sort(distincts, Comparator.comparing(str
-                -> Integer.valueOf(str.replaceAll("[^0-9]", ""))));
-
-        for (int i = 0; i < 30; i++) {
-            System.out.println(distincts[distincts.length - 1 - i]);
-        }
         LocalDateTime finish = LocalDateTime.now();
 
         System.out.println("------");
